@@ -5,7 +5,7 @@ from utils.datasets import LoadImages
 from utils.general import (non_max_suppression, scale_coords, xyxy2xywh)
 from utils.torch_utils import select_device
 
-from models import *
+from models.models import *
 from utils.datasets import *
 from utils.general import *
 
