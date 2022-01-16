@@ -52,7 +52,7 @@ class Detector:
 
             # Process detections
             for i, det in enumerate(pred):  # detections per image
-                p, s, im0 = path, '', im0s
+                p, s, im0 = i, '', im0s
                 gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
                 if det is not None and len(det):
                     # Rescale boxes from img_size to im0 size
