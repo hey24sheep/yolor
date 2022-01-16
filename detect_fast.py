@@ -14,7 +14,7 @@ class Detector:
         self.model = self.load_model(weights, cfg, imgsz, device)
         return self.model
 
-    def load_model(weights, cfg, imgsz, device):
+    def load_model(self, weights, cfg, imgsz, device):
         device = select_device(device)
         half = device.type != 'cpu'
         # Load model
@@ -27,7 +27,7 @@ class Detector:
             model.half()  # to FP16
         return model
 
-    def detect_image_fast(model, img, imgsz, device, augment, conf_thres=0.40, iou_thres=0.50, classes=None, agnostic_nms=False):
+    def detect_image_fast(self, model, img, imgsz, device, augment, conf_thres=0.40, iou_thres=0.50, classes=None, agnostic_nms=False):
         device = select_device(device)
         half = device.type != 'cpu'  # half precision only supported on CUDA
         pred_results = dict(
