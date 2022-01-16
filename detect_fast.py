@@ -5,7 +5,7 @@ from utils.datasets import LoadImages
 from utils.general import (non_max_suppression, scale_coords, xyxy2xywh)
 from utils.torch_utils import select_device
 
-from models.models import *
+from models import *
 from utils.datasets import *
 from utils.general import *
 
@@ -66,4 +66,3 @@ class Detector:
                         pred_results['scores'].append(conf)
                         pred_results['classes'].append(cls)
             return pred_results
-            
