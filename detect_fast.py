@@ -32,12 +32,13 @@ class Detector:
                 imgids=[],
                 boxes=[],
                 scores=[],
-                classes=[]
+                classes=[],
+                bbox_str=[]
         )
         dataset = LoadImages(img, img_size=imgsz, auto_size=64)
         img = torch.zeros((1, 3, imgsz, imgsz), device=device)  # init img
         _ = self.model(img.half() if half else img) if device.type != 'cpu' else None  # run once
-        for path, img, im0s, vid_cap in dataset:
+        for ogimg, img, im0s, vid_cap in dataset:
             img = torch.from_numpy(img).to(device)
             img = img.half() if half else img.float()  # uint8 to fp16/32
             img /= 255.0  # 0 - 255 to 0.0 - 1.0
@@ -46,21 +47,27 @@ class Detector:
 
             # Inference
             pred = self.model(img, augment=augment)[0]
+
             # Apply NMS
             pred = non_max_suppression(pred, conf_thres, iou_thres, classes=classes, agnostic=agnostic_nms)
 
             # Process detections
             for i, det in enumerate(pred):  # detections per image
-                p, s, im0 = i, '', im0s
+                det = det.cpu().detach()
+                p, s, im0 = ogimg, '', im0s
                 gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
                 if det is not None and len(det):
                     # Rescale boxes from img_size to im0 size
                     det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
                     # Write results
                     for *xyxy, conf, cls in det:
-                        xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                        pred_results['imgids'].append(p)
+                        xywh = xyxy2xywh(torch.tensor(xyxy).view(1, 4)).tolist()[0]
+                        xywh = [int(b) for b in xywh]
+                        conf=round(conf.tolist(),2)
+#                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+                        pred_results['bbox_str'].append(f'{conf} {xywh[0]} {xywh[1]} {xywh[2]} {xywh[3]}')
+                        pred_results['imgids'].append(i)
                         pred_results['boxes'].append(xywh)
                         pred_results['scores'].append(conf)
-                        pred_results['classes'].append(cls)
-            return pred_results
+                        pred_results['classes'].append(cls.tolist())
+        return pred_results
