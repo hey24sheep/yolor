@@ -1,18 +1,17 @@
 import torch
 import torch.backends.cudnn as cudnn
 
-from utils.datasets import LoadImages
+from utils.datasets_fast import LoadImages
 from utils.general import (non_max_suppression, scale_coords, xyxy2xywh)
 from utils.torch_utils import select_device
 
-from models.zoohub import *
+from models.models import *
 from utils.datasets import *
 from utils.general import *
 
 class Detector:
     def __init__(self,weights, cfg, imgsz, device):
         self.model = self.load_model(weights, cfg, imgsz, device)
-        return self.model
 
     def load_model(self, weights, cfg, imgsz, device):
         device = select_device(device)
@@ -27,7 +26,7 @@ class Detector:
             model.half()  # to FP16
         return model
 
-    def detect_image_fast(self, model, img, imgsz, device, augment, conf_thres=0.40, iou_thres=0.50, classes=None, agnostic_nms=False):
+    def detect_image_fast(self, img, imgsz, device, augment, conf_thres=0.40, iou_thres=0.50, classes=None, agnostic_nms=False):
         device = select_device(device)
         half = device.type != 'cpu'  # half precision only supported on CUDA
         pred_results = dict(
@@ -38,7 +37,7 @@ class Detector:
         )
         dataset = LoadImages(img, img_size=imgsz, auto_size=64)
         img = torch.zeros((1, 3, imgsz, imgsz), device=device)  # init img
-        _ = model(img.half() if half else img) if device.type != 'cpu' else None  # run once
+        _ = self.model(img.half() if half else img) if device.type != 'cpu' else None  # run once
         for path, img, im0s, vid_cap in dataset:
             img = torch.from_numpy(img).to(device)
             img = img.half() if half else img.float()  # uint8 to fp16/32
@@ -47,7 +46,7 @@ class Detector:
                 img = img.unsqueeze(0)
 
             # Inference
-            pred = model(img, augment=augment)[0]
+            pred = self.model(img, augment=augment)[0]
             # Apply NMS
             pred = non_max_suppression(pred, conf_thres, iou_thres, classes=classes, agnostic=agnostic_nms)
 
