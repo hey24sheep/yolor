@@ -212,8 +212,8 @@ class LoadImages:  # for inference
                 assert img0 is not None, 'Image Not Found ' + path
                 print('image %g/%g %s: ' % (self.count, self.nf, path), end='')
             else:
-                img0 = self.files[self.count]
-                
+                img0 = path
+
         # Padded resize
         img = letterbox(img0, new_shape=self.img_size, auto_size=self.auto_size)[0]
 
